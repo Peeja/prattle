@@ -1,5 +1,7 @@
 require 'sinatra'
 
+set :haml, :format => :html5
+
 client_id = nil
 client_secret = nil
 
