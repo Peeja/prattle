@@ -1,22 +1,39 @@
-require 'sinatra'
+require 'sinatra/base'
 
-set :haml, :format => :html5
+class Store
+  class << self
+    attr_reader :client_id, :client_secret
 
-client_id = nil
-client_secret = nil
+    def set_github_app_info(client_id, client_secret)
+      @client_id = client_id
+      @client_secret = client_secret
+    end
 
-class UnprocessableEntity < RuntimeError; end
-
-get '/' do
-  if client_id && client_secret
-    "Client ID: #{client_id}\nClient Secret: #{client_secret}"
-  else
-    haml :set_up_application
+    def has_github_app_info?
+      @client_id && @client_secret
+    end
   end
 end
 
-post '/set_up_application' do
-  client_id = params.fetch("client_id") { raise UnprocessableEntity }
-  client_secret = params.fetch("client_secret") { raise UnprocessableEntity }
-  redirect '/'
+class PrattleApp < Sinatra::Base
+  class UnprocessableEntity < RuntimeError; end
+
+  set :haml, :format => :html5
+
+  get '/' do
+    if Store.has_github_app_info?
+      "Client ID: #{Store.client_id}\nClient Secret: #{Store.client_secret}"
+    else
+      haml :set_up_application
+    end
+  end
+
+  post '/set_up_application' do
+    Store.set_github_app_info(
+      params.fetch("client_id") { raise UnprocessableEntity },
+      params.fetch("client_secret") { raise UnprocessableEntity }
+    )
+
+    redirect '/'
+  end
 end
