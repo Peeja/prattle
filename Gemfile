@@ -5,4 +5,5 @@ gem "haml"
 
 group :development do
   gem "rerun"
+  gem "rb-fsevent"
 end
