@@ -88,7 +88,7 @@ class PrattleApp < Sinatra::Base
   end
 
   get '/repos' do
-    Store.github.repos.list.inspect
+    haml :repos, locals: { repos: Store.github.repos.list.map(&:full_name) }
   end
 
   get '/logout' do
