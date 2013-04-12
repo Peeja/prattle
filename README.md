@@ -28,9 +28,3 @@ The app will instruct you to:
 
 Now, any time the status of the latest commit on a PR changes, you'll get a
 notification.
-
-
-FIXME: We're probably going to end up depending on Redis or another data
-store, so be sure to add that to the Heroku instructions.
-
-UNKNOWN: Can we get all of the repos this user is authed for?
