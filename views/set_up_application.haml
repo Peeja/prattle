@@ -1,26 +1,21 @@
-!!!
-%html
-  %head
-    %title Prattle
-  %body
-    %h1 Let's get you set up to Prattle
+%h1 Let's get you set up to Prattle
 
-    %ol
-      %li
-        %p
-          %a(href="https://github.com/settings/applications/new") Set up a new GitHub application
-          or use
-          = succeed '.' do
-            %a(href="https://github.com/settings/applications") an existing one
-      %li
-        %p
-          Enter its info below.
-        %form(action="/set_up_application" method="post")
-          %label(for="gh_app_client_id") Client ID
-          %input(type="text" id="gh_app_client_id" name="client_id")
-          %br
-          %label(for="gh_app_client_secret") Client Secret
-          %input(type="text" secret="gh_app_client_secret" name="client_secret")
-          %br
-          %input(type="submit" value="Next »")
+%ol
+  %li
+    %p
+      %a(href="https://github.com/settings/applications/new") Set up a new GitHub application
+      or use
+      = succeed '.' do
+        %a(href="https://github.com/settings/applications") an existing one
+  %li
+    %p
+      Enter its info below.
+    %form(action="/set_up_application" method="post")
+      %label(for="gh_app_client_id") Client ID
+      %input(type="text" id="gh_app_client_id" name="client_id")
+      %br
+      %label(for="gh_app_client_secret") Client Secret
+      %input(type="text" secret="gh_app_client_secret" name="client_secret")
+      %br
+      %input(type="submit" value="Next »")
 
