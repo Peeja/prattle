@@ -1,21 +1,41 @@
 require 'sinatra/base'
 require 'haml'
 require 'github_api'
+require 'redis'
 
 class Store
   class << self
     attr_reader :github
 
+    def redis
+      @redis ||= Redis.new
+    end
+
+    def github
+      @github ||= Github.new(:client_id => client_id, :client_secret => client_secret) if client_id && client_secret
+    end
+
     def set_github_app_info(client_id, client_secret)
-      @github = Github.new(:client_id => client_id, :client_secret => client_secret)
+      redis.set("client_id", client_id)
+      redis.set("client_secret", client_secret)
     end
 
     def github_configured?
-      !@github.nil?
+      !github.nil?
     end
 
     def set_token(token)
-      @github.oauth_token = token
+      github.oauth_token = token
+    end
+
+    private
+
+    def client_id
+      redis.get("client_id")
+    end
+
+    def client_secret
+      redis.get("client_secret")
     end
   end
 end
