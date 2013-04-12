@@ -7,28 +7,39 @@ class Store
   class << self
     attr_reader :github
 
-    def redis
-      @redis ||= Redis.new
-    end
-
     def github
-      @github ||= Github.new(:client_id => client_id, :client_secret => client_secret) if client_id && client_secret
+      @github ||= Github.new(:client_id => client_id, :client_secret => client_secret, :oauth_token => oauth_token) if github_configured?
     end
 
     def configure_github(client_id, client_secret)
+      @github = nil
       redis.set("client_id", client_id)
       redis.set("client_secret", client_secret)
     end
 
     def github_configured?
-      !github.nil?
+      client_id && client_secret
+    end
+
+    def authenticated?
+      oauth_token
     end
 
     def set_token(token)
-      github.oauth_token = token
+      @github = nil
+      redis.set("oauth_token", token)
+    end
+
+    def reset!
+      @github = nil
+      redis.del(*%w{client_id client_secret oauth_token})
     end
 
     private
+
+    def redis
+      @redis ||= Redis.new
+    end
 
     def client_id
       redis.get("client_id")
@@ -36,6 +47,10 @@ class Store
 
     def client_secret
       redis.get("client_secret")
+    end
+
+    def oauth_token
+      redis.get("oauth_token")
     end
   end
 end
@@ -46,10 +61,13 @@ class PrattleApp < Sinatra::Base
   set :haml, :format => :html5
 
   get '/' do
-    if Store.github_configured?
+    case
+    when !Store.github_configured?
+      haml :set_up_application
+    when !Store.authenticated?
       redirect Store.github.authorize_url(redirect_uri: 'http://prattle.dev/authenticate')
     else
-      haml :set_up_application
+      redirect '/repos'
     end
   end
 
@@ -71,5 +89,10 @@ class PrattleApp < Sinatra::Base
 
   get '/repos' do
     Store.github.repos.list.inspect
+  end
+
+  get '/logout' do
+    Store.reset!
+    redirect '/'
   end
 end
