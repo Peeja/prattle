@@ -1,4 +1,13 @@
 %ul
   - repos.each do |repo|
     %li
-      = repo
+      - if Store.tracking?(repo)
+        %form{action: "/untrack", method: "post"}
+          %input{type: "hidden", name: "repo", value: repo}
+          %input{type: "submit", value: "X"}
+          = repo
+      - else
+        %form{action: "/track", method: "post"}
+          %input{type: "hidden", name: "repo", value: repo}
+          %input{type: "submit", value: " "}
+          = repo

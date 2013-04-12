@@ -30,9 +30,17 @@ class Store
       redis.set("oauth_token", token)
     end
 
-    def reset!
+    def logout!
       @github = nil
       redis.del(*%w{client_id client_secret oauth_token})
+    end
+
+    def track(repo)
+      redis.set("tracking:#{repo}", true)
+    end
+
+    def tracking?(repo)
+      redis.exists("tracking:#{repo}")
     end
 
     private
@@ -87,12 +95,18 @@ class PrattleApp < Sinatra::Base
     redirect '/repos'
   end
 
+  get '/logout' do
+    Store.logout!
+    redirect '/'
+  end
+
   get '/repos' do
     haml :repos, locals: { repos: Store.github.repos.list.map(&:full_name) }
   end
 
-  get '/logout' do
-    Store.reset!
-    redirect '/'
+  post '/track' do
+    repo = params.fetch("repo") { raise UnprocessableEntity }
+    Store.track(repo)
+    redirect '/repos'
   end
 end
