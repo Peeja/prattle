@@ -15,7 +15,7 @@ class Store
       @github ||= Github.new(:client_id => client_id, :client_secret => client_secret) if client_id && client_secret
     end
 
-    def set_github_app_info(client_id, client_secret)
+    def configure_github(client_id, client_secret)
       redis.set("client_id", client_id)
       redis.set("client_secret", client_secret)
     end
@@ -54,7 +54,7 @@ class PrattleApp < Sinatra::Base
   end
 
   post '/set_up_application' do
-    Store.set_github_app_info(
+    Store.configure_github(
       params.fetch("client_id") { raise UnprocessableEntity },
       params.fetch("client_secret") { raise UnprocessableEntity }
     )
