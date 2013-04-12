@@ -8,7 +8,7 @@ class Store
     attr_reader :github
 
     def github
-      @github ||= Github.new(:client_id => client_id, :client_secret => client_secret, :oauth_token => oauth_token) if github_configured?
+      @github ||= Github.new(client_id: client_id, client_secret: client_secret, oauth_token: oauth_token) if github_configured?
     end
 
     def configure_github(client_id, client_secret)
