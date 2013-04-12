@@ -65,7 +65,7 @@ class PrattleApp < Sinatra::Base
     when !Store.github_configured?
       haml :set_up_application
     when !Store.authenticated?
-      redirect Store.github.authorize_url(redirect_uri: 'http://prattle.dev/authenticate')
+      redirect Store.github.authorize_url(redirect_uri: 'http://prattle.dev/authenticate', scope: 'repo')
     else
       redirect '/repos'
     end
