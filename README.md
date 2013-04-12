@@ -21,8 +21,8 @@ instructions.
 
 The app will instruct you to:
 
-- Create an application in GitHub
-- Enter `OAUTH_GITHUB_CLIENT_ID` and `OAUTH_GITHUB_CLIENT_SECRET`
+- Create an application in GitHub.
+- Enter your Client ID and Client Secret.
 - Authorize with GitHub.
 - Turn on any repos you want to track.
 
