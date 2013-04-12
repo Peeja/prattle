@@ -1,16 +1,21 @@
 require 'sinatra/base'
+require 'haml'
+require 'github_api'
 
 class Store
   class << self
-    attr_reader :client_id, :client_secret
+    attr_reader :github
 
     def set_github_app_info(client_id, client_secret)
-      @client_id = client_id
-      @client_secret = client_secret
+      @github = Github.new(:client_id => client_id, :client_secret => client_secret)
     end
 
-    def has_github_app_info?
-      @client_id && @client_secret
+    def github_configured?
+      !@github.nil?
+    end
+
+    def set_token(token)
+      @github.oauth_token = token
     end
   end
 end
@@ -21,8 +26,8 @@ class PrattleApp < Sinatra::Base
   set :haml, :format => :html5
 
   get '/' do
-    if Store.has_github_app_info?
-      "Client ID: #{Store.client_id}\nClient Secret: #{Store.client_secret}"
+    if Store.github_configured?
+      redirect Store.github.authorize_url(redirect_uri: 'http://prattle.dev/authenticate')
     else
       haml :set_up_application
     end
@@ -35,5 +40,16 @@ class PrattleApp < Sinatra::Base
     )
 
     redirect '/'
+  end
+
+  get '/authenticate' do
+    code = params.fetch("code") { raise UnprocessableEntity }
+    token = Store.github.get_token(code).token
+    Store.set_token(token)
+    redirect '/repos'
+  end
+
+  get '/repos' do
+    Store.github.repos.list.inspect
   end
 end
