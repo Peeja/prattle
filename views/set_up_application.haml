@@ -15,7 +15,7 @@
       %li
         %p
           Enter its info below.
-        %form
+        %form(action="/set_up_application" method="post")
           %label(for="gh_app_client_id") Client ID
           %input(type="text" id="gh_app_client_id" name="client_id")
           %br
