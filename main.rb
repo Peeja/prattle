@@ -2,6 +2,7 @@ require 'sinatra/base'
 require 'haml'
 require 'github_api'
 require 'redis'
+require 'json'
 
 class Store
   class << self
@@ -127,7 +128,21 @@ class PrattleApp < Sinatra::Base
   end
 
   post '/notify/status' do
-    puts "NOTIFIED!"
-    p params
+    payload = JSON.parse(params['payload'])
+
+    sha = payload['sha']
+    state = payload['state']
+    pull_request = payload['pull_request']
+
+    if pull_request
+      comments_url = pull_request['comments_url']
+
+      case state
+      when "success"
+        Store.github.post_request(comments_url, body: "This pull request is good to merge.")
+      when "failure"
+        Store.github.post_request(comments_url, body: "This pull request has failed.")
+      end
+    end
   end
 end
