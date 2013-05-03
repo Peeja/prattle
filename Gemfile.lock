@@ -30,6 +30,7 @@ GEM
     rack-protection (1.5.0)
       rack
     rb-fsevent (0.9.1)
+    redis (2.2.2)
     rerun (0.8.0)
       listen
     sinatra (1.4.2)
@@ -45,5 +46,6 @@ DEPENDENCIES
   github_api
   haml
   rb-fsevent
+  redis
   rerun
   sinatra
