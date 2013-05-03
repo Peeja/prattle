@@ -39,6 +39,10 @@ class Store
       redis.set("tracking:#{repo}", true)
     end
 
+    def untrack(repo)
+      redis.del("tracking:#{repo}")
+    end
+
     def tracking?(repo)
       redis.exists("tracking:#{repo}")
     end
@@ -73,7 +77,7 @@ class PrattleApp < Sinatra::Base
     when !Store.github_configured?
       haml :set_up_application
     when !Store.authenticated?
-      redirect Store.github.authorize_url(redirect_uri: 'http://prattle.dev/authenticate', scope: 'repo')
+      redirect Store.github.authorize_url(redirect_uri: 'http://prattle.50.138.134.87.xip.io/authenticate', scope: 'repo')
     else
       redirect '/repos'
     end
@@ -105,8 +109,25 @@ class PrattleApp < Sinatra::Base
   end
 
   post '/track' do
-    repo = params.fetch("repo") { raise UnprocessableEntity }
-    Store.track(repo)
+    repo_full_name = params.fetch("repo") { raise UnprocessableEntity }
+
+    Store.github.repos.pubsubhubbub.subscribe("https://github.com/#{repo_full_name}/events/status", 'http://prattle.50.138.134.87.xip.io/notify/status')
+
+    Store.track(repo_full_name)
     redirect '/repos'
+  end
+
+  post '/untrack' do
+    repo_full_name = params.fetch("repo") { raise UnprocessableEntity }
+
+    Store.github.repos.pubsubhubbub.unsubscribe("https://github.com/#{repo_full_name}/events/status", 'http://prattle.50.138.134.87.xip.io/notify/status')
+
+    Store.untrack(repo_full_name)
+    redirect '/repos'
+  end
+
+  post '/notify/status' do
+    puts "NOTIFIED!"
+    p params
   end
 end
