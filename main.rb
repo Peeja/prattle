@@ -106,7 +106,7 @@ class PrattleApp < Sinatra::Base
   end
 
   get '/repos' do
-    haml :repos, locals: { repos: Store.github.repos.list.map(&:full_name) }
+    haml :repos, locals: { repos: Store.github.repos.list(auto_pagination: true).map(&:full_name) }
   end
 
   post '/track' do
