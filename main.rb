@@ -12,12 +12,6 @@ class Store
       @github ||= Github.new(client_id: client_id, client_secret: client_secret, oauth_token: oauth_token) if github_configured?
     end
 
-    def configure_github(client_id, client_secret)
-      @github = nil
-      redis.set("client_id", client_id)
-      redis.set("client_secret", client_secret)
-    end
-
     def github_configured?
       client_id && client_secret
     end
@@ -33,7 +27,7 @@ class Store
 
     def logout!
       @github = nil
-      redis.del(*%w{client_id client_secret oauth_token})
+      redis.del(*%w{oauth_token})
     end
 
     def track(repo)
@@ -55,11 +49,11 @@ class Store
     end
 
     def client_id
-      redis.get("client_id")
+      ENV["GITHUB_CLIENT_ID"]
     end
 
     def client_secret
-      redis.get("client_secret")
+      ENV["GITHUB_CLIENT_SECRET"]
     end
 
     def oauth_token
@@ -78,19 +72,10 @@ class PrattleApp < Sinatra::Base
     when !Store.github_configured?
       haml :set_up_application
     when !Store.authenticated?
-      redirect Store.github.authorize_url(redirect_uri: 'http://prattle.50.138.134.87.xip.io/authenticate', scope: 'repo')
+      haml :login
     else
       redirect '/repos'
     end
-  end
-
-  post '/set_up_application' do
-    Store.configure_github(
-      params.fetch("client_id") { raise UnprocessableEntity },
-      params.fetch("client_secret") { raise UnprocessableEntity }
-    )
-
-    redirect '/'
   end
 
   get '/authenticate' do
@@ -98,6 +83,10 @@ class PrattleApp < Sinatra::Base
     token = Store.github.get_token(code).token
     Store.set_token(token)
     redirect '/repos'
+  end
+
+  get '/login' do
+    redirect Store.github.authorize_url(redirect_uri: 'http://prattle.50.138.134.87.xip.io/authenticate', scope: 'repo')
   end
 
   get '/logout' do

@@ -7,13 +7,9 @@
         %a(href="https://github.com/settings/applications/new") Set up a new GitHub application
   %li
     %p
-      Enter its info below.
-    %form(action="/set_up_application" method="post")
-      %label(for="gh_app_client_id") Client ID
-      %input(type="text" id="gh_app_client_id" name="client_id")
-      %br
-      %label(for="gh_app_client_secret") Client Secret
-      %input(type="text" secret="gh_app_client_secret" name="client_secret")
-      %br
-      %input(type="submit" value="Next »")
-
+      Configure this Heroku app:
+    %code
+      $ heroku config:set GITHUB_CLIENT_ID=... GITHUB_CLIENT_SECRET=...
+  %li
+    %p
+      Refresh this page.

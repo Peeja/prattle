@@ -16,14 +16,14 @@ or failed. That's exactly what Prattle does for you.
 
 ## Usage
 
-Push this repo to a new Heroku app. Then open app in a browser and follow the
-instructions.
-
-The app will instruct you to:
-
 - Create an application in GitHub.
-- Enter your Client ID and Client Secret.
-- Authorize with GitHub.
+- Push this repo to a new Heroku app.
+- Configure the app:
+
+      $ heroku config:set GITHUB_CLIENT_ID=... GITHUB_CLIENT_SECRET=...
+
+- Visit the app in a browser.
+- Log in with GitHub.
 - Turn on any repos you want to track.
 
 Now, any time the status of the latest commit on a PR changes, you'll get a
