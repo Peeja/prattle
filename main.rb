@@ -65,6 +65,10 @@ end
 class PrattleApp < Sinatra::Base
   class UnprocessableEntity < RuntimeError; end
 
+  error UnprocessableEntity do
+    status 422
+  end
+
   set :haml, :format => :html5
 
   get '/' do
