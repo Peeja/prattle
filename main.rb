@@ -39,7 +39,7 @@ class PrattleApp < Sinatra::Base
 
   get '/' do
     case
-    when !github_configured?
+    when !configured?
       haml :set_up_application
     when !authenticated?
       haml :login
@@ -56,7 +56,7 @@ class PrattleApp < Sinatra::Base
   end
 
   get '/login' do
-    redirect github.authorize_url(redirect_uri: 'http://prattle.50.138.134.87.xip.io/authenticate', scope: 'repo')
+    redirect github.authorize_url(redirect_uri: url('/authenticate'), scope: 'repo')
   end
 
   get '/logout' do
@@ -66,18 +66,14 @@ class PrattleApp < Sinatra::Base
 
   post '/track' do
     repo_full_name = params.fetch("repo") { raise UnprocessableEntity }
-
-    github.repos.pubsubhubbub.subscribe("https://github.com/#{repo_full_name}/events/status", 'http://prattle.50.138.134.87.xip.io/notify/status')
-
+    github.repos.pubsubhubbub.subscribe("https://github.com/#{repo_full_name}/events/status", url("/notify/status"))
     Store.track(repo_full_name)
     redirect '/'
   end
 
   post '/untrack' do
     repo_full_name = params.fetch("repo") { raise UnprocessableEntity }
-
-    github.repos.pubsubhubbub.unsubscribe("https://github.com/#{repo_full_name}/events/status", 'http://prattle.50.138.134.87.xip.io/notify/status')
-
+    github.repos.pubsubhubbub.unsubscribe("https://github.com/#{repo_full_name}/events/status", url("/notify/status"))
     Store.untrack(repo_full_name)
     redirect '/'
   end
@@ -102,20 +98,20 @@ class PrattleApp < Sinatra::Base
   end
 
   def github
-    raise "Tried to use Github, but it's not configured!" unless github_configured?
-    Github.new(client_id: client_id, client_secret: client_secret, oauth_token: oauth_token)
+    raise "Tried to use Github, but it's not configured!" unless configured?
+    Github.new(client_id: github_client_id, client_secret: github_client_secret, oauth_token: oauth_token)
   end
 
-  def client_id
+  def github_client_id
     ENV["GITHUB_CLIENT_ID"]
   end
 
-  def client_secret
+  def github_client_secret
     ENV["GITHUB_CLIENT_SECRET"]
   end
 
-  def github_configured?
-    client_id && client_secret
+  def configured?
+    github_client_id && github_client_secret
   end
 
   def authenticated?
@@ -133,5 +129,4 @@ class PrattleApp < Sinatra::Base
   def oauth_token
     session["oauth_token"]
   end
-
 end

@@ -1,15 +1,14 @@
-%h1 Let's get you set up to Prattle.
+:markdown
+  # Let's get you set up to Prattle.
 
-%ol
-  %li
-    %p
-      = succeed '.' do
-        %a(href="https://github.com/settings/applications/new") Set up a new GitHub application
-  %li
-    %p
-      Configure this Heroku app:
-    %code
-      $ heroku config:set GITHUB_CLIENT_ID=... GITHUB_CLIENT_SECRET=...
-  %li
-    %p
-      Refresh this page.
+  - [Set up a new GitHub application][new-app]. Set both the **URL** and **Callback URL** to
+
+        #{url('/')}
+
+  - Configure this Heroku app:
+
+        $ heroku config:set GITHUB_CLIENT_ID=... GITHUB_CLIENT_SECRET=...
+
+  - Refresh this page.
+
+  [new-app]: https://github.com/settings/applications/new

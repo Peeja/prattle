@@ -18,11 +18,8 @@ or failed. That's exactly what Prattle does for you.
 
 - Create an application in GitHub.
 - Push this repo to a new Heroku app.
-- Configure the app:
-
-      $ heroku config:set GITHUB_CLIENT_ID=... GITHUB_CLIENT_SECRET=...
-
 - Visit the app in a browser.
+- Follow the setup instructions.
 - Log in with GitHub.
 - Turn on any repos you want to track.
 
