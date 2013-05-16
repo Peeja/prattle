@@ -6,28 +6,20 @@ require 'json'
 
 class Store
   class << self
-    attr_reader :github
-
-    def github
-      @github ||= Github.new(client_id: client_id, client_secret: client_secret, oauth_token: oauth_token) if github_configured?
-    end
-
-    def github_configured?
-      client_id && client_secret
-    end
-
     def authenticated?
       oauth_token
     end
 
     def set_token(token)
-      @github = nil
       redis.set("oauth_token", token)
     end
 
     def logout!
-      @github = nil
       redis.del(*%w{oauth_token})
+    end
+
+    def oauth_token
+      redis.get("oauth_token")
     end
 
     def track(repo)
@@ -47,18 +39,6 @@ class Store
     def redis
       @redis ||= Redis.new
     end
-
-    def client_id
-      ENV["GITHUB_CLIENT_ID"]
-    end
-
-    def client_secret
-      ENV["GITHUB_CLIENT_SECRET"]
-    end
-
-    def oauth_token
-      redis.get("oauth_token")
-    end
   end
 end
 
@@ -73,7 +53,7 @@ class PrattleApp < Sinatra::Base
 
   get '/' do
     case
-    when !Store.github_configured?
+    when !github_configured?
       haml :set_up_application
     when !Store.authenticated?
       haml :login
@@ -84,13 +64,13 @@ class PrattleApp < Sinatra::Base
 
   get '/authenticate' do
     code = params.fetch("code") { raise UnprocessableEntity }
-    token = Store.github.get_token(code).token
+    token = github.get_token(code).token
     Store.set_token(token)
     redirect '/repos'
   end
 
   get '/login' do
-    redirect Store.github.authorize_url(redirect_uri: 'http://prattle.50.138.134.87.xip.io/authenticate', scope: 'repo')
+    redirect github.authorize_url(redirect_uri: 'http://prattle.50.138.134.87.xip.io/authenticate', scope: 'repo')
   end
 
   get '/logout' do
@@ -99,13 +79,13 @@ class PrattleApp < Sinatra::Base
   end
 
   get '/repos' do
-    haml :repos, locals: { repos: Store.github.repos.list(auto_pagination: true).map(&:full_name) }
+    haml :repos, locals: { repos: github.repos.list(auto_pagination: true).map(&:full_name) }
   end
 
   post '/track' do
     repo_full_name = params.fetch("repo") { raise UnprocessableEntity }
 
-    Store.github.repos.pubsubhubbub.subscribe("https://github.com/#{repo_full_name}/events/status", 'http://prattle.50.138.134.87.xip.io/notify/status')
+    github.repos.pubsubhubbub.subscribe("https://github.com/#{repo_full_name}/events/status", 'http://prattle.50.138.134.87.xip.io/notify/status')
 
     Store.track(repo_full_name)
     redirect '/repos'
@@ -114,7 +94,7 @@ class PrattleApp < Sinatra::Base
   post '/untrack' do
     repo_full_name = params.fetch("repo") { raise UnprocessableEntity }
 
-    Store.github.repos.pubsubhubbub.unsubscribe("https://github.com/#{repo_full_name}/events/status", 'http://prattle.50.138.134.87.xip.io/notify/status')
+    github.repos.pubsubhubbub.unsubscribe("https://github.com/#{repo_full_name}/events/status", 'http://prattle.50.138.134.87.xip.io/notify/status')
 
     Store.untrack(repo_full_name)
     redirect '/repos'
@@ -132,10 +112,27 @@ class PrattleApp < Sinatra::Base
 
       case state
       when "success"
-        Store.github.post_request(comments_url, body: "This pull request is good to merge.")
+        github.post_request(comments_url, body: "This pull request is good to merge.")
       when "failure"
-        Store.github.post_request(comments_url, body: "This pull request has failed.")
+        github.post_request(comments_url, body: "This pull request has failed.")
       end
     end
+  end
+
+  def github
+    raise "Tried to use Github, but it's not configured!" unless github_configured?
+    Github.new(client_id: client_id, client_secret: client_secret, oauth_token: Store.oauth_token)
+  end
+
+  def client_id
+    ENV["GITHUB_CLIENT_ID"]
+  end
+
+  def client_secret
+    ENV["GITHUB_CLIENT_SECRET"]
+  end
+
+  def github_configured?
+    client_id && client_secret
   end
 end
