@@ -6,8 +6,8 @@ require 'json'
 
 class Store
   class << self
-    def track(repo)
-      redis.set("tracking:#{repo}", true)
+    def track(repo, token)
+      redis.set("tracking:#{repo}", token)
     end
 
     def untrack(repo)
@@ -16,6 +16,10 @@ class Store
 
     def tracking?(repo)
       redis.exists("tracking:#{repo}")
+    end
+
+    def token_for_repo(repo)
+      redis.get("tracking:#{repo}")
     end
 
     private
@@ -67,7 +71,7 @@ class PrattleApp < Sinatra::Base
   post '/track' do
     repo_full_name = params.fetch("repo") { raise UnprocessableEntity }
     github.repos.pubsubhubbub.subscribe("https://github.com/#{repo_full_name}/events/status", url("/notify/status"))
-    Store.track(repo_full_name)
+    Store.track(repo_full_name, oauth_token)
     redirect '/'
   end
 
@@ -87,6 +91,9 @@ class PrattleApp < Sinatra::Base
 
     if pull_request
       comments_url = pull_request['comments_url']
+
+      # This is a weird way to do this. We need to get the Github client to use the right token.
+      authenticate_as!(Store.token_for_repo(pull_request['head']['repo']['full_name']))
 
       case state
       when "success"
