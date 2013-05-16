@@ -21,7 +21,7 @@ class Store
     private
 
     def redis
-      @redis ||= Redis.new
+      @redis ||= Redis.new(url: ENV["REDISTOGO_URL"])
     end
   end
 end
