@@ -22,6 +22,10 @@ class Store
       redis.get("tracking:#{repo}")
     end
 
+    def tracked_repos
+      redis.keys("tracking:*").map { |key| key.sub(/^tracking:/, '') }
+    end
+
     private
 
     def redis
@@ -48,7 +52,9 @@ class PrattleApp < Sinatra::Base
     when !authenticated?
       haml :login
     else
-      haml :repos, locals: { repos: github.repos.list(auto_pagination: true).map(&:full_name) }
+      repos_from_github = github.repos.list(auto_pagination: true).map(&:full_name)
+      repos = (Store.tracked_repos + repos_from_github).uniq
+      haml :repos, locals: { repos: repos }
     end
   end
 

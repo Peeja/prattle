@@ -1,15 +1,19 @@
 %a{href: "/logout"} Log Out
 
 %ul
+  %li
+    %form{action: "/track", method: "post"}
+      %input{type: "submit", value: " "}
+      %input{type: "text", name: "repo"}
   - repos.each do |repo|
     %li
       - if Store.tracking?(repo)
         %form{action: "/untrack", method: "post"}
-          %input{type: "hidden", name: "repo", value: repo}
           %input{type: "submit", value: "X"}
+          %input{type: "hidden", name: "repo", value: repo}
           = repo
       - else
         %form{action: "/track", method: "post"}
-          %input{type: "hidden", name: "repo", value: repo}
           %input{type: "submit", value: " "}
+          %input{type: "hidden", name: "repo", value: repo}
           = repo
