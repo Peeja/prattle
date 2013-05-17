@@ -7,7 +7,7 @@ require 'json'
 class Store
   class << self
     def track(repo, token)
-      redis.set("tracking:#{repo}", token)
+      redis.set("tracking:#{repo}", true)
     end
 
     def untrack(repo)
@@ -16,10 +16,6 @@ class Store
 
     def tracking?(repo)
       redis.exists("tracking:#{repo}")
-    end
-
-    def token_for_repo(repo)
-      redis.get("tracking:#{repo}")
     end
 
     def tracked_repos
@@ -98,8 +94,10 @@ class PrattleApp < Sinatra::Base
     if pull_request
       comments_url = pull_request['comments_url']
 
-      # This is a weird way to do this. We need to get the Github client to use the right token.
-      authenticate_as!(Store.token_for_repo(pull_request['head']['repo']['full_name']))
+      # This is a weird way to do this. We need to get the Github client to use
+      # the right token, but we don't need to set the session. Still, should be
+      # harmless, since the session is with GitHub, not the user.
+      authenticate_as!(prattle_token)
 
       case state
       when "success"
@@ -123,8 +121,12 @@ class PrattleApp < Sinatra::Base
     ENV["GITHUB_CLIENT_SECRET"]
   end
 
+  def prattle_token
+    ENV["PRATTLE_TOKEN"]
+  end
+
   def configured?
-    github_client_id && github_client_secret
+    github_client_id && github_client_secret && prattle_token
   end
 
   def authenticated?

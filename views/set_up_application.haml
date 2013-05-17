@@ -5,10 +5,21 @@
 
         #{url('/')}
 
+    Note the **Client ID** and the **Client Secret**.
+
+  - Set up a GitHub account for Prattle to act as. This is the user who
+    comments will appear to be posted by. You can use an existing user, but it
+    may look confusing, and that user will never receive email notifications
+    for Prattle comments (because GitHub doesn't notify you of your own
+    comments).
+
+  - [Generate a **Personal API Token**][api-token] for the user Prattle will act as.
+
   - Configure this Heroku app:
 
-        $ heroku config:set GITHUB_CLIENT_ID=... GITHUB_CLIENT_SECRET=...
+        $ heroku config:set GITHUB_CLIENT_ID=... GITHUB_CLIENT_SECRET=... PRATTLE_TOKEN=...
 
   - Refresh this page.
 
   [new-app]: https://github.com/settings/applications/new
+  [api-token]: https://github.com/settings/applications
