@@ -1,0 +1,34 @@
+#!/usr/bin/env ruby
+
+# FIXME Duplication like whoa. This should drive restructuring the app code.
+
+require 'github_api'
+
+
+def post_commit_status(repo_full_name, sha, status)
+  user, repo = repo_full_name.split('/')
+  github.repos.statuses.create(user, repo, sha, "state" => status)
+end
+
+def github
+  raise "Tried to use Github, but it's not configured!" unless configured?
+  Github.new(client_id: github_client_id, client_secret: github_client_secret, oauth_token: prattle_token)
+end
+
+def github_client_id
+  ENV["GITHUB_CLIENT_ID"]
+end
+
+def github_client_secret
+  ENV["GITHUB_CLIENT_SECRET"]
+end
+
+def prattle_token
+  ENV["PRATTLE_TOKEN"]
+end
+
+def configured?
+  github_client_id && github_client_secret && prattle_token
+end
+
+post_commit_status(*ARGV)
