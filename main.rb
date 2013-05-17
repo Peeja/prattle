@@ -42,7 +42,7 @@ class PrattleApp < Sinatra::Base
   end
 
   set :haml, :format => :html5
-  enable :sessions
+  enable :sessions, :logging
   configure(:development) { set :session_secret, "secret" }
 
   get '/' do
